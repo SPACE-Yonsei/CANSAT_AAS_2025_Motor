@@ -27,11 +27,11 @@ while True:
             print("조건 충족")
 
         if current_angle <= 100 && current_angle >= 80:
-            if high_alt - current_alt < 0.2
+            if high_alt - current_alt < 0.2:
                 n += 1
         if current_angle <= 120 && current_angle >= 60:
-            if high_alt - current_alt < 0.3
+            if high_alt - current_alt < 0.3:
                 n += 1
         if current_angle <= 135 && current_angle >= 45:
-            if high_alt - current_alt < 0.5
+            if high_alt - current_alt < 0.5:
                 n += 1
