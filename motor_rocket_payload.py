@@ -12,7 +12,7 @@ while True:
         start_time = time.time()  # 최고 고도 시 시각
         high_alt = 현재 고도 입력 # 최고 고도
 
-    if state = "descending": 
+    if state == "descending": 
         current_time = time.time()
         current_alt = 현재 고도 입력
         current_angle = 현재 z축 기준 각도
@@ -26,12 +26,9 @@ while True:
         if current_angle >= 135:  #(도)
             print("조건 충족")
 
-        if current_angle <= 100 && current_angle >= 80:
-            if high_alt - current_alt < 0.2:
+        if 80 <= current_angle <= 100 && high_alt - current_alt < 0.2:
                 n += 1
-        if current_angle <= 120 && current_angle >= 60:
-            if high_alt - current_alt < 0.3:
+        if 60 <= current_angle <= 120 && high_alt - current_alt < 0.3:
                 n += 1
-        if current_angle <= 135 && current_angle >= 45:
-            if high_alt - current_alt < 0.5:
+        if 45 <= current_angle <= 135 && high_alt - current_alt < 0.5:
                 n += 1
