@@ -32,3 +32,6 @@ while True:
                 n += 1
         if 45 <= current_angle <= 135 && high_alt - current_alt < 0.5:
                 n += 1
+        elif:
+            if n >0:
+                n -= 1
