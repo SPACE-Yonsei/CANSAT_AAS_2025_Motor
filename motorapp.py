@@ -24,9 +24,29 @@ MOTORAPP_RUNSTATUS = True
 # SB Methods
 # Methods for sending/receiving/handling SB messages
 
+# define constraints for state determination
+pressure = 0
+temperature = 0
+altitude = 0
+roll = 0
+pitch = 0
+yaw = 0
+accx = 0
+accy = 0
+accz = 0
+
 # Handles received message
 def command_handler (recv_msg : msgstructure.MsgStructure):
     global MOTORAPP_RUNSTATUS
+    global pressure
+    global temperature
+    global altitude
+    global roll
+    global pitch
+    global yaw
+    global accx
+    global accy
+    global accz
 
     if recv_msg.MsgID == appargs.MotorAppArg.MID_SendHK:
         print(recv_msg.data)
@@ -42,7 +62,19 @@ def command_handler (recv_msg : msgstructure.MsgStructure):
             pressure = float(recv_data[0])
             temperature = float(recv_data[1])
             altitude = float(recv_data[2])
+        except:
+            return
+        rocket_logic()
 
+    elif recv_msg.MsgID == appargs.ImuAppArg.MID_SendIMUData:
+        try:
+            recv_data = recv_msg.data.split(',')
+            roll = recv_data[0]
+            pitch = recv_data[1]
+            yaw = recv_data[2]
+            accx = recv_data[3]
+            accy = recv_data[4]
+            accz = recv_data[5]
         except:
             return
     else:
@@ -95,7 +127,18 @@ def motorapp_terminate():
 ## USER METHOD                                      ##
 ######################################################
 
+def rocket_logic():
+    global pressure
+    global temperature
+    global altitude
+    global roll
+    global pitch
+    global yaw
+    global accx
+    global accy
+    global accz
 
+    print(f"Pr:{pressure:.2f}, Tm{temperature:.2f}, Al{altitude:.2f}, Ax{accx:.2f}, Ay{accy:.2f}, Az{accz:.2f}")
 
 ######################################################
 ## MAIN METHOD                                      ##
