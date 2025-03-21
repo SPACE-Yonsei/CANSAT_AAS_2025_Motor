@@ -23,7 +23,7 @@ def motor_init():
     # 50Hz PWM 신호 생성: 서보 모터의 기본 동작 주기는 약 20ms(50Hz)입니다.
     servo = GPIO.PWM(SERVO_PIN, 50)
     # 초기 듀티 사이클을 7.5%로 설정하면, 대부분의 서보 모터는 중앙(약 90°) 위치에 놓입니다.
-    servo.start(7.5)
+    servo.start(ROCKET_MIDDLE)
 
     # 현재 서보 모터의 각도를 저장할 변수 (단위: 도)
     # 여기서는 카메라가 북쪽을 바라보도록 0도로 초기화합니다.
@@ -146,8 +146,13 @@ def control_motor_using_imu(heading):
 
 
 ### For rocket team
+# 7.5 (middle)
+# 2.9 (sa chul)
+ROCKET_MIDDLE = 7.5
+ROCKET_SACHUL = 2.9
 
-def change_motor_angle(angle):
-    servo.ChangeDutyCycle(angle_to_duty_cycle(angle))
+def change_motor_angle(dutycycle):
+    global servo
+    servo.ChangeDutyCycle(dutycycle)
     return
 

@@ -150,17 +150,27 @@ elif 60~120도 & 고도 변화량 < -0.3m  (n+1)
 elif 45~135도 & 고도 변화량 < -0.5m  (n+1)
 """
 
+# altitude deploy
 logic_counter_altitude = 0
+#heading deploy
+logic_counter_heading_abs = 0
 rocket_deployed = False
 
 max_alt = 0
 def sa_chul():
-    motor.change_motor_angle(180)
+    print("sachul!")
+    global rocket_deployed
+    motor.change_motor_angle(motor.ROCKET_SACHUL)
+    rocket_deployed = True
 
 def rocket_logic():
+    global rocket_deployed
     if rocket_deployed:
         return
+    global logic_counter_heading_abs
     global logic_counter
+
+
     global pressure
     global temperature
     global altitude
@@ -174,18 +184,30 @@ def rocket_logic():
     global logic_counter_altitude
 
     print(f"Pr:{pressure:.2f}, Mx{max_alt:.2f}, Al{altitude:.2f}, Rl{roll:.2f}, Pt{pitch:.2f}, Yw{yaw:.2f}, Ax{accx:.2f}, Ay{accy:.2f}, Az{accz:.2f}")
-    
+    print(f"LA:{logic_counter_altitude}, LH{logic_counter_heading_abs}")
     ## Altitude logic
     max_alt = max(max_alt, altitude)
     # Max alt 보다 2m보다 낮으면
     if (altitude < max_alt - 2):
         logic_counter_altitude += 1
     else:
-        logic_counter_altitude -= 2
+        logic_counter_altitude -= 3
+        if logic_counter_altitude < 0:
+            logic_counter_altitude = 0
     
     if logic_counter_altitude >= 10:
         sa_chul()
 
+
+    if roll > 135 or roll < -135 or pitch > 135 or pitch < -135:
+        logic_counter_heading_abs += 1
+    else :
+        logic_counter_heading_abs -= 3
+        if logic_counter_heading_abs < 0:
+            logic_counter_heading_abs = 0
+    
+    if logic_counter_heading_abs >= 10:
+        sa_chul()
 
 
 ######################################################
