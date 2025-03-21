@@ -10,7 +10,7 @@ pwm.start(0)
 
 
 def motor_payload_contain_init():
-    set_servo_angle(0):
+    set_servo_angle(0)
     
 def set_servo_angle(angle):
     duty = angle / 18.0 + 2

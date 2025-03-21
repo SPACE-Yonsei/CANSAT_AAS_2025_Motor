@@ -4,9 +4,9 @@ import RPi.GPIO as GPIO
 import board
 import busio
 
-SERVO_PIN = 18
+SERVO_PIN = 12
 servo = None
-current_servo_angle = 0
+
 def motor_init():
     global servo
     global current_servo_angle
@@ -28,6 +28,11 @@ def motor_init():
     # 현재 서보 모터의 각도를 저장할 변수 (단위: 도)
     # 여기서는 카메라가 북쪽을 바라보도록 0도로 초기화합니다.
     current_servo_angle = 0
+        
+def motor_terminate():
+    servo.stop()
+    GPIO.cleanup()
+    return
 
 """
 현재 각도(current)와 목표 각도(target) 사이의 최소 회전 차이를 계산합니다.
@@ -139,4 +144,10 @@ def control_motor_using_imu(heading):
         # print(f"Heading: {heading:.1f}°, Target Servo: {target_servo:.1f}°, Current Servo: {current_servo_angle:.1f}°, Diff: {diff:.1f}°, Duty: {duty:.2f}%")
         return
 
+
+### For rocket team
+
+def change_motor_angle(angle):
+    servo.ChangeDutyCycle(angle_to_duty_cycle(angle))
+    return
 
