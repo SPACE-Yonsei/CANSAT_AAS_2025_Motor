@@ -12,3 +12,10 @@ https://github.com/SPACE-Yonsei/CANSAT_AAS_2025_Motor   로 그대로 fork했습
 돌아간다.py에서 자기장에 따라 모터가 잘 작동함을 확인하였으며,
 motor.py가 자기장 값으로 작동하는 코드입니다.
 motor_desc.py는 같은 코드에 상세한 설명이 있습니다.
+
+
+
+######
+페이로드의 모터 motor_zero.py
+컨테이너의 모터 motor_contain.py
+로켓의 모터 motor_rocket_payload.py
