@@ -6,7 +6,7 @@ n = 0  # n 5보다 커지면 사출
 ACC_THRESHOLD = 0.3 #가속도 변화 임계치
 
 while True:
-    acc = 가속도 입력 
+    acc = 현재 가속도 입력 
     if acc > ACC_THRESHOLD && sate != "descending": # 가속도 임계치 이상이며 하강이 아니였을 때
         state = "descending"
         start_time = time.time()  # 최고 고도 시 시각
