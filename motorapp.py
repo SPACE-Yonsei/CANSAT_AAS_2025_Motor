@@ -36,6 +36,15 @@ def command_handler (recv_msg : msgstructure.MsgStructure):
         events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.info, f"MOTORAPP TERMINATION DETECTED")
         MOTORAPP_RUNSTATUS = False
 
+    elif recv_msg.MsgID == appargs.BarometerAppArg.MID_SendBarometerData:
+        try:
+            recv_data = recv_msg.data.split(',')
+            pressure = float(recv_data[0])
+            temperature = float(recv_data[1])
+            altitude = float(recv_data[2])
+
+        except:
+            return
     else:
         events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.error, f"MID {recv_msg.MsgID} not handled")
     return
@@ -86,7 +95,7 @@ def motorapp_terminate():
 ## USER METHOD                                      ##
 ######################################################
 
-# Put user-defined methods here!
+
 
 ######################################################
 ## MAIN METHOD                                      ##
