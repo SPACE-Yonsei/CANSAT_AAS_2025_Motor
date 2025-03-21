@@ -32,6 +32,6 @@ while True:
                 n += 1
         if 45 <= current_angle <= 135 && high_alt - current_alt < 0.5:
                 n += 1
-        elif:
+        elif: # 로켓 안정성 위해 사출 조건 벗어나면 n 차감. 예) 1 1 1 1 1 -> 사출 1 1 1 -1 1 -> 논 사출 1 1 1 -1 1 1 -1 1 1-> 사출
             if n >0:
                 n -= 1
