@@ -198,7 +198,7 @@ def rocket_logic():
         sa_chul()
 
 
-    if roll > 135 or roll < -135 or pitch > 135 or pitch < -135:
+    if roll > 75 or roll < -75 or pitch > 75 or pitch < -75:
         logic_counter_heading_abs += 1
     else :
         logic_counter_heading_abs -= 3
