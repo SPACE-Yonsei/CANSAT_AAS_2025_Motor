@@ -1,3 +1,8 @@
+#### sudo apt install -y python3-gpiozero
+#### #!/usr/bin/env python3 지우면 안됩니다
+
+
+
 #!/usr/bin/env python3
 from gpiozero import AngularServo
 from time import sleep
