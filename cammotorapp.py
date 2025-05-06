@@ -1,4 +1,4 @@
-# Python FSW V2 Motor App
+# Python FSW V2 Cammotor App
 # Author : Hyeon Lee
 
 from lib import appargs
@@ -13,7 +13,10 @@ import threading
 import time
 
 # Runstatus of application. Application is terminated when false
-MOTORAPP_RUNSTATUS = True
+CAMMOTORAPP_RUNSTATUS = True
+
+# Import Cammotor App for MG92B
+from motor import mg92b
 
 ######################################################
 ## FUNDEMENTAL METHODS                              ##
@@ -24,22 +27,27 @@ MOTORAPP_RUNSTATUS = True
 
 # Handles received message
 def command_handler (recv_msg : msgstructure.MsgStructure):
-    global MOTORAPP_RUNSTATUS
+    global CAMMOTORAPP_RUNSTATUS
 
     if recv_msg.MsgID == appargs.MainAppArg.MID_TerminateProcess:
         # Change Runstatus to false to start termination process
-        events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.info, f"MOTORAPP TERMINATION DETECTED")
-        MOTORAPP_RUNSTATUS = False
+        events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.info, f"CAMMOTORAPP TERMINATION DETECTED")
+        CAMMOTORAPP_RUNSTATUS = False
+
+    # When received Yaw Data from IMU
+    if recv_msg.MsgID == appargs.ImuAppArg.MID_SendYawData:
+        recv_yaw = float(recv_msg.data)
+        mg92b.rotate_MG92B_ByYaw(recv_yaw)
 
     else:
-        events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.error, f"MID {recv_msg.MsgID} not handled")
+        events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.error, f"MID {recv_msg.MsgID} not handled")
     return
 
 def send_hk(Main_Queue : Queue):
-    global MOTORAPP_RUNSTATUS
-    while MOTORAPP_RUNSTATUS:
-        motorHK = msgstructure.MsgStructure
-        msgstructure.send_msg(Main_Queue, motorHK, appargs.MotorAppArg.AppID, appargs.HkAppArg.AppID, appargs.MotorAppArg.MID_SendHK, str(MOTORAPP_RUNSTATUS))
+    global CAMMOTORAPP_RUNSTATUS
+    while CAMMOTORAPP_RUNSTATUS:
+        cammotorHK = msgstructure.MsgStructure
+        msgstructure.send_msg(Main_Queue, cammotorHK, appargs.CammotorAppArg.AppID, appargs.HkAppArg.AppID, appargs.CammotorAppArg.MID_SendHK, str(CAMMOTORAPP_RUNSTATUS))
         time.sleep(1)
     return
 
@@ -48,40 +56,50 @@ def send_hk(Main_Queue : Queue):
 ######################################################
 
 # Initialization
-def motorapp_init():
-    global MOTORAPP_RUNSTATUS
+def cammotorapp_init():
+    global CAMMOTORAPP_RUNSTATUS
     try:
         # Disable Keyboardinterrupt since Termination is handled by parent process
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-        events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.info, "Initializating motorapp")
+        events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.info, "Initializating cammotorapp")
         ## User Defined Initialization goes HERE
-        events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.info, "Motorapp Initialization Complete")
+
+        # Initialize MG92B Cammotor
+        mg92b.init_MG92B()
+
+        events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.info, "Cammotorapp Initialization Complete")
     except Exception as e:
-        events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.error, "Error during initialization")
-        MOTORAPP_RUNSTATUS = False
+        events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.error, "Error during initialization")
+        CAMMOTORAPP_RUNSTATUS = False
 
 # Termination
-def motorapp_terminate():
-    global MOTORAPP_RUNSTATUS
+def cammotorapp_terminate():
+    global CAMMOTORAPP_RUNSTATUS
 
-    MOTORAPP_RUNSTATUS = False
-    events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.info, "Terminating motorapp")
+    CAMMOTORAPP_RUNSTATUS = False
+    events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.info, "Terminating cammotorapp")
     # Termination Process Comes Here
+
+    # Terminate Cammotor
+    mg92b.terminate_MG92B()
 
     # Join Each Thread to make sure all threads terminates
     for thread_name in thread_dict:
-        events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.info, f"Terminating thread {thread_name}")
+        events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.info, f"Terminating thread {thread_name}")
         thread_dict[thread_name].join()
-        events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.info, f"Terminating thread {thread_name} Complete")
+        events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.info, f"Terminating thread {thread_name} Complete")
 
     # The termination flag should switch to false AFTER ALL TERMINATION PROCESS HAS ENDED
-    events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.info, "Terminating motorapp complete")
+    events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.info, "Terminating cammotorapp complete")
     return
 
 ######################################################
 ## USER METHOD                                      ##
 ######################################################
+
+
+
 
 # Put user-defined methods here!
 
@@ -92,12 +110,12 @@ def motorapp_terminate():
 thread_dict = dict[str, threading.Thread]()
 
 # This method is called from main app. Initialization, runloop process
-def motorapp_main(Main_Queue : Queue, Main_Pipe : connection.Connection):
-    global MOTORAPP_RUNSTATUS
-    MOTORAPP_RUNSTATUS = True
+def cammotorapp_main(Main_Queue : Queue, Main_Pipe : connection.Connection):
+    global CAMMOTORAPP_RUNSTATUS
+    CAMMOTORAPP_RUNSTATUS = True
 
     # Initialization Process
-    motorapp_init()
+    cammotorapp_init()
 
     # Spawn SB Message Listner Thread
     thread_dict["HKSender_Thread"] = threading.Thread(target=send_hk, args=(Main_Queue, ), name="HKSender_Thread")
@@ -107,7 +125,7 @@ def motorapp_main(Main_Queue : Queue, Main_Pipe : connection.Connection):
         thread_dict[thread_name].start()
 
     try:
-        while MOTORAPP_RUNSTATUS:
+        while CAMMOTORAPP_RUNSTATUS:
             # Receive Message From Pipe
             message = Main_Pipe.recv()
             recv_msg = msgstructure.MsgStructure()
@@ -116,20 +134,20 @@ def motorapp_main(Main_Queue : Queue, Main_Pipe : connection.Connection):
             if msgstructure.unpack_msg(recv_msg, message) == False:
                 continue
             
-            # Validate Message, Skip this message if target AppID different from motorapp's AppID
+            # Validate Message, Skip this message if target AppID different from cammotorapp's AppID
             # Exception when the message is from main app
-            if recv_msg.receiver_app == appargs.MotorAppArg.AppID or recv_msg.receiver_app == appargs.MainAppArg.AppID:
+            if recv_msg.receiver_app == appargs.CammotorAppArg.AppID or recv_msg.receiver_app == appargs.MainAppArg.AppID:
                 # Handle Command According to Message ID
                 command_handler(recv_msg)
             else:
-                events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.error, "Receiver MID does not match with motorapp MID")
+                events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.error, "Receiver MID does not match with cammotorapp MID")
 
     # If error occurs, terminate app
     except Exception as e:
-        events.LogEvent(appargs.MotorAppArg.AppName, events.EventType.error, f"motorapp error : {e}")
-        MOTORAPP_RUNSTATUS = False
+        events.LogEvent(appargs.CammotorAppArg.AppName, events.EventType.error, f"cammotorapp error : {e}")
+        CAMMOTORAPP_RUNSTATUS = False
 
     # Termination Process after runloop
-    motorapp_terminate()
+    cammotorapp_terminate()
 
     return
