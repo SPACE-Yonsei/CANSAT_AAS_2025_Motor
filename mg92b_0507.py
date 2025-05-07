@@ -1,3 +1,15 @@
+"""
+
+sudo apt install -y python3-pip python3-smbus
+sudo python3 -m pip install --break-system-packages adafruit-blinka
+pip install adafruit-blinka adafruit-circuitpython-bno055 gpiozero
+sudo python3 -m pip install --break-system-packages \
+  adafruit-blinka adafruit-circuitpython-bno055
+  """
+
+
+
+
 #!/usr/bin/env python3
 import time, math
 import board, busio
