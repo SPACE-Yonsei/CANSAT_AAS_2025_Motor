@@ -7,13 +7,10 @@ sudo python3 -m pip install --break-system-packages \
   adafruit-blinka adafruit-circuitpython-bno055
   """
 
-
-
-
 #!/usr/bin/env python3
 import time, math
 import board, busio
-from adafruit_bno055 import BNO055_I2C
+#from adafruit_bno055 import BNO055_I2C
 from gpiozero import AngularServo
 
 # --------- 서보 설정 ------------
@@ -32,15 +29,19 @@ def init_MG92B():
     )
 
 def terminate_MG92B():
+    global servo
     servo.detach()
 
 def normalize_diff(angle):
+    global servo
+    
     """360° 순환 차이를 –180~+180 사이로 변환"""
     return (angle + 180) % 360 - 180
 
 def rotate_MG92B_ByYaw(yaw: float):
     """주어진 절대 yaw(0~360) 기준으로 서보 각도 보정"""
     global prev_yaw, total_turns
+    global servo
 
     if prev_yaw is None:
         prev_yaw = yaw
@@ -63,6 +64,7 @@ def rotate_MG92B_ByYaw(yaw: float):
     print(f"yaw={yaw:6.1f}°, Δ={delta:5.1f}°, turns={total_turns:5.2f}, servo→{corr:5.1f}°")
 
 
+"""
 # --------- BNO055 초기화 ------------
 i2c    = busio.I2C(board.SCL, board.SDA)
 sensor = BNO055_I2C(i2c)
@@ -88,3 +90,4 @@ if __name__ == "__main__":
         pass
     finally:
         terminate_MG92B()
+"""
