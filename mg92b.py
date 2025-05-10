@@ -17,7 +17,7 @@ def init_MG92B():
     import pwmio
     from adafruit_motor import servo
 
-    pwm = pwmio.PWMOut(board.D18, frequency=50)
+    pwm = pwmio.PWMOut(board.D12, frequency=50)
 
     mg92b_servo = servo.Servo(
         pwm,
