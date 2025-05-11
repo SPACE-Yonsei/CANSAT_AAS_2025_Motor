@@ -34,11 +34,9 @@ def terminate_MG92B(pwm):
 def normalize_diff(angle):
     return (angle + 180) % 360 - 180
 
-def rotate_MG92B_ByYaw(mg92b_servo, pwm, yaw:float):
+def rotate_MG92B_ByYaw(mg92b_servo, yaw:float):
     global prev_yaw
     global total_turns
-
-    yaw = get_yaw()
 
     if prev_yaw is None:
         prev_yaw = yaw
@@ -63,15 +61,14 @@ def rotate_MG92B_ByYaw(mg92b_servo, pwm, yaw:float):
 def get_yaw():
     return random.uniform(0, 360)
 
-"""
-motor_instance, pwm_instance = init_MG92B()
+if __name__ == "__main__":
+    motor_instance, pwm_instance = init_MG92B()
 
-try:
-    while True:
-        yaw = get_yaw()
-        rotate_MG92B_ByYaw(motor_instance, pwm_instance, yaw)
-        time.sleep(1)
+    try:
+        while True:
+            yaw = get_yaw()
+            rotate_MG92B_ByYaw(motor_instance, yaw)
+            time.sleep(1)
 
-except KeyboardInterrupt:
-    terminate_MG92B(pwm_instance)
-"""
+    except KeyboardInterrupt:
+        terminate_MG92B(pwm_instance)

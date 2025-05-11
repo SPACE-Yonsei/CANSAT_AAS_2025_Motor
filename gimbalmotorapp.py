@@ -12,7 +12,7 @@ from multiprocessing import Queue, connection
 import threading
 import time
 
-from motor import mg92b
+from motor import payload_motor
 
 # Runstatus of application. Application is terminated when false
 GIMBALMOTORAPP_RUNSTATUS = True
@@ -25,13 +25,26 @@ GIMBALMOTORAPP_RUNSTATUS = True
 # Methods for sending/receiving/handling SB messages
 
 # Handles received message
-def command_handler (recv_msg : msgstructure.MsgStructure):
+def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
     global GIMBALMOTORAPP_RUNSTATUS
 
     if recv_msg.MsgID == appargs.MainAppArg.MID_TerminateProcess:
         # Change Runstatus to false to start termination process
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"GIMBALMOTORAPP TERMINATION DETECTED")
         GIMBALMOTORAPP_RUNSTATUS = False
+
+    # On rocket motor activation command
+    if recv_msg.MsgID == appargs.FlightlogicAppArg.MID_RocketMotorActivate:
+        activaterocketmotor(motor_instance)
+
+    # On Payload Release motor activation command
+    if recv_msg.MsgID == appargs.FlightlogicAppArg.MID_PayloadReleaseMotorActivate:
+        activatepayloadreleasemotor(motor_instance)
+
+    # On receiving yaw data
+    if recv_msg.MsgID == appargs.ImuAppArg.MID_SendYawData:
+        recv_yaw = float(recv_msg.data)
+        payload_motor.rotate_MG92B_ByYaw(motor_instance, recv_yaw)
 
     else:
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, f"MID {recv_msg.MsgID} not handled")
@@ -42,7 +55,6 @@ def send_hk(Main_Queue : Queue, motor_instance, pwm_instance):
     while GIMBALMOTORAPP_RUNSTATUS:
         gimbalmotorHK = msgstructure.MsgStructure
         msgstructure.send_msg(Main_Queue, gimbalmotorHK, appargs.GimbalmotorAppArg.AppID, appargs.HkAppArg.AppID, appargs.GimbalmotorAppArg.MID_SendHK, str(GIMBALMOTORAPP_RUNSTATUS))
-        mg92b.rotate_MG92B_ByYaw(motor_instance, pwm_instance, 1)
         time.sleep(1)
     return
 
@@ -60,7 +72,7 @@ def gimbalmotorapp_init():
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Initializating gimbalmotorapp")
         ## User Defined Initialization goes HERE
 
-        motor_instance, pwm_instance = mg92b.init_MG92B()
+        motor_instance, pwm_instance = payload_motor.init_MG92B()
 
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Gimbalmotorapp Initialization Complete")
         return motor_instance, pwm_instance
@@ -91,6 +103,14 @@ def gimbalmotorapp_terminate():
 ######################################################
 ## USER METHOD                                      ##
 ######################################################
+
+# Activate Rocket Release Motor
+def activaterocketmotor(motor_instance):
+    events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Activating Rocket Motor")
+    return
+def activatepayloadreleasemotor(motor_instance):
+    events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Activating Payload Release Motor")
+    return
 
 # Put user-defined methods here!
 
@@ -129,7 +149,7 @@ def gimbalmotorapp_main(Main_Queue : Queue, Main_Pipe : connection.Connection):
             # Exception when the message is from main app
             if recv_msg.receiver_app == appargs.GimbalmotorAppArg.AppID or recv_msg.receiver_app == appargs.MainAppArg.AppID:
                 # Handle Command According to Message ID
-                command_handler(recv_msg)
+                command_handler(recv_msg, motor_instance)
             else:
                 events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, "Receiver MID does not match with gimbalmotorapp MID")
 
