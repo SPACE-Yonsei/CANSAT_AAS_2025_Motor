@@ -10,7 +10,7 @@ import math, random, time
 
 # Define the pulse width of motor in microseconds
 MG996R_MIN_PULSE = 500
-MG996R_MAX_PULSE = 500
+MG996R_MAX_PULSE = 2500
 
 def init_MG996R():
     import board
@@ -18,7 +18,7 @@ def init_MG996R():
     from adafruit_motor import servo
 
     # Configure Motor Pin
-    pwm = pwmio.PWMOut(board.D13, frequency=50)
+    pwm = pwmio.PWMOut(board.D12, frequency=50)
 
     # Adjust minimum, maximum pulse value
     mg996r_servo = servo.Servo(
