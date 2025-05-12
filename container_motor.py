@@ -10,7 +10,7 @@ import math, random, time
 
 # Define the pulse width of motor in microseconds
 MG996R_MIN_PULSE = 500
-MG996R_MAX_PULSE = 500
+MG996R_MAX_PULSE = 2500
 
 def init_MG996R():
     import board
@@ -51,7 +51,8 @@ if __name__ == "__main__":
             if target_degree > 180 or target_degree < 0:
                 print("invalid range!")
                 continue
-
+            rotate_mg996r(motor_instance, target_degree)
+            
     except KeyboardInterrupt:
         pass
 
