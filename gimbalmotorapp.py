@@ -37,18 +37,25 @@ def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"GIMBALMOTORAPP TERMINATION DETECTED")
         GIMBALMOTORAPP_RUNSTATUS = False
 
+    # On receiving yaw data
+    elif recv_msg.MsgID == appargs.ImuAppArg.MID_SendYawData:
+        recv_yaw = float(recv_msg.data)
+        payload_motor.rotate_MG92B_ByYaw(motor_instance, recv_yaw)
+
     # On rocket motor activation command
-    if recv_msg.MsgID == appargs.FlightlogicAppArg.MID_RocketMotorActivate:
+    elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_RocketMotorActivate:
         activaterocketmotor(motor_instance)
 
     # On Payload Release motor activation command
-    if recv_msg.MsgID == appargs.FlightlogicAppArg.MID_PayloadReleaseMotorActivate:
+    elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_PayloadReleaseMotorActivate:
         activatepayloadreleasemotor(motor_instance)
 
-    # On receiving yaw data
-    if recv_msg.MsgID == appargs.ImuAppArg.MID_SendYawData:
-        recv_yaw = float(recv_msg.data)
-        payload_motor.rotate_MG92B_ByYaw(motor_instance, recv_yaw)
+    # On Payload Release motor standby command
+    elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_PayloadReleaseMotorStandby:
+        standbypayloadreleasemotor(motor_instance)
+
+    elif recv_msg.MsgID == appargs.CommAppArg.MID_RouteCmd_MEC:
+        activatemechanismcomand(motor_instance)
 
     else:
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, f"MID {recv_msg.MsgID} not handled")
@@ -114,6 +121,12 @@ def activaterocketmotor(motor_instance):
     return
 def activatepayloadreleasemotor(motor_instance):
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Activating Payload Release Motor")
+    return
+def standbypayloadreleasemotor(motor_instance):
+    events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Standby Payload Release Motor")
+    return
+def activatemechanismcomand(motor_instance):
+    events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "MEC received")
     return
 
 # Put user-defined methods here!
