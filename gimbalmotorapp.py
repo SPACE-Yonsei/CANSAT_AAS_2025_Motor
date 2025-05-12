@@ -6,6 +6,7 @@ from lib import msgstructure
 from lib import logging
 from lib import events
 from lib import types
+from lib import config
 
 import signal
 from multiprocessing import Queue, connection
@@ -16,7 +17,6 @@ import time
 from motor import payload_motor
 from motor import container_motor
 from motor import rocket_motor
-
 
 # Runstatus of application. Application is terminated when false
 GIMBALMOTORAPP_RUNSTATUS = True
@@ -44,19 +44,50 @@ def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
 
     # On rocket motor activation command
     elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_RocketMotorActivate:
-        activaterocketmotor(motor_instance)
+        # This command should only be activated on rocket
+        if config.FSW_CONF == config.CONF_ROCKET:
+            activaterocketmotor(motor_instance)
+        else:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"Not Performing Rocket Motor Activation, current conf : {config.FSW_CONF}")
+
+    # On rocket motor standby command
+    elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_PayloadReleaseMotorStandby:
+        # This command should only be activated on rocket
+        if config.FSW_CONF == config.CONF_ROCKET:
+            standbyrocketmotor(motor_instance)
+        else:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"Not Performing Rocket Motor Standby, current conf : {config.FSW_CONF}")
 
     # On Payload Release motor activation command
     elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_PayloadReleaseMotorActivate:
-        activatepayloadreleasemotor(motor_instance)
+
+        if config.FSW_CONF == config.CONF_CONTAINER:
+            activatepayloadreleasemotor(motor_instance)
+        else:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"Not Performing Payload Release Motor Activation, current conf : {config.FSW_CONF}")
 
     # On Payload Release motor standby command
     elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_PayloadReleaseMotorStandby:
-        standbypayloadreleasemotor(motor_instance)
+
+        if config.FSW_CONF == config.CONF_CONTAINER:
+            standbypayloadreleasemotor(motor_instance)
+        else:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"Not Performing Payload Release Motor Standby, current conf : {config.FSW_CONF}")
+
 
     elif recv_msg.MsgID == appargs.CommAppArg.MID_RouteCmd_MEC:
-        activatemechanismcomand(motor_instance)
+        if config.FSW_CONF == config.CONF_ROCKET:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"MEC : Current conf : rocket, activating rocket motor...")
+            activaterocketmotor(motor_instance)
 
+        elif config.FSW_CONF == config.CONF_CONTAINER:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"MEC : Current conf : container, activating payload release motor...")
+            activatepayloadreleasemotor(motor_instance)
+
+        elif config.FSW_CONF == config.CONF_PAYLOAD:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"MEC : Current conf : payload, resetting the gimbal motor to 0 degree...")
+            controlgimbalmotor(motor_instance, 90)
+            
     else:
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, f"MID {recv_msg.MsgID} not handled")
     return
@@ -119,14 +150,19 @@ def gimbalmotorapp_terminate():
 def activaterocketmotor(motor_instance):
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Activating Rocket Motor")
     return
+def standbyrocketmotor(motor_instance):
+    events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Standby Rocket Motor")
+    return
+
 def activatepayloadreleasemotor(motor_instance):
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Activating Payload Release Motor")
     return
 def standbypayloadreleasemotor(motor_instance):
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Standby Payload Release Motor")
     return
-def activatemechanismcomand(motor_instance):
-    events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "MEC received")
+
+
+def controlgimbalmotor(motor_instance, yaw):
     return
 
 # Put user-defined methods here!
