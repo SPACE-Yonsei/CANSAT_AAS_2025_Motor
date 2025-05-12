@@ -8,9 +8,7 @@ from gpiozero import AngularServo
 
 servo = None
 
-
 target = 0  # IMU 기준으로 목표는 시계방향 몇도? / 0511 추가
-
 
 # MG92b 시작
 def init_MG92B():
@@ -25,7 +23,6 @@ def init_MG92B():
 # MG92b 시작 종류
 def terminate_MG92B():
     servo.detach()
-
 
 # MG92b 회전전
 def rotate_MG92B_ByYaw(yaw: float):

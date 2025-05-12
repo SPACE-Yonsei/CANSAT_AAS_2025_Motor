@@ -8,9 +8,8 @@
 
 import math, random, time
 
-max_revs = 2.0 #최대 회전 횟수 -> 꼬임 방지
-prev_yaw = None    # 이전에 읽은 yaw
-total_turns = 0.0
+# Target Degree based on IMU
+TARGET_DEGREE = 0
 
 def init_MG92B():
     import board
@@ -35,40 +34,55 @@ def normalize_diff(angle):
     return (angle + 180) % 360 - 180
 
 def rotate_MG92B_ByYaw(mg92b_servo, yaw:float):
-    global prev_yaw
-    global total_turns
 
-    if prev_yaw is None:
-        prev_yaw = yaw
+    yaw = (yaw-TARGET_DEGREE) % 360
+        
+    if 90>yaw+TARGET_DEGREE >= 0+TARGET_DEGREE:   #1사분면    0~90 
+        servo_angle = yaw
+    elif 180+TARGET_DEGREE > yaw >= 90+TARGET_DEGREE:  #2사분면  
+        servo_angle = 85
+    elif 270+TARGET_DEGREE > yaw >= 180+TARGET_DEGREE:  #3사분면  
+        servo_angle = -85
+    elif 360+TARGET_DEGREE >= yaw >= 270+TARGET_DEGREE:   #4사분면
+        servo_angle = -(360-yaw)    
+    else:
+        pass
 
-    delta = normalize_diff(yaw - prev_yaw)
-    prev_yaw = yaw
+    # The Servo angle range is -90 ~ 90, but adafruit servo library support 0 ~ 180, so apply the offset
+    servo_angle = servo_angle + 90
 
-    # Update total turns
-    total_turns += delta / 360.0
-    total_turns = max(-max_revs, min(max_revs, total_turns))
+    mg92b_servo.angle = servo_angle
+    print(f"yaw={yaw:6.1f}°, servo→{servo_angle:5.1f}°")
 
-    raw_correction = - (yaw + total_turns * 360)
-
-    corr = normalize_diff(raw_correction)
-    corr = max(-90, min(90, corr))
-
-    # 90 degree is added because the angle range is 0 ~ 180 degree
-    mg92b_servo.angle = corr + 90
-
-    #print(f"yaw={yaw:6.1f}°, Δ={delta:5.1f}°, turns={total_turns:5.2f}, servo→{corr:5.1f}°")
 
 def get_yaw():
     return random.uniform(0, 360)
 
 if __name__ == "__main__":
+    from adafruit_bno055 import BNO055_I2C
+    import board, busio
+
+    i2c    = busio.I2C(board.SCL, board.SDA)
+    sensor = BNO055_I2C(i2c)
+
     motor_instance, pwm_instance = init_MG92B()
 
     try:
+        print("BNO055 + MG92B 보정 시작 (Ctrl+C 종료)")
+        # 센서 워밍업
+        time.sleep(1)
         while True:
-            yaw = get_yaw()
-            rotate_MG92B_ByYaw(motor_instance, yaw)
-            time.sleep(1)
+            heading = sensor.euler[0]  # (heading, roll, pitch)
+            if heading is None:
+                # 아직 센서가 준비 안 됐으면 재시도
+                time.sleep(0.1)
+                continue
+
+            rotate_MG92B_ByYaw(motor_instance, heading)
+            time.sleep(0.1)
 
     except KeyboardInterrupt:
+        pass
+
+    finally:
         terminate_MG92B(pwm_instance)
