@@ -51,7 +51,8 @@ if __name__ == "__main__":
             if target_degree > 180 or target_degree < 0:
                 print("invalid range!")
                 continue
-            rotate_mg996r(motor_instance, target_degree)
+            else:
+                rotate_mg996r(motor_instance, target_degree)
             
     except KeyboardInterrupt:
         pass
