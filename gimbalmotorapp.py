@@ -12,7 +12,11 @@ from multiprocessing import Queue, connection
 import threading
 import time
 
+# Import Motor Libraries
 from motor import payload_motor
+from motor import container_motor
+from motor import rocket_motor
+
 
 # Runstatus of application. Application is terminated when false
 GIMBALMOTORAPP_RUNSTATUS = True

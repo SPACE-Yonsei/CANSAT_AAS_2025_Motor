@@ -10,18 +10,21 @@ import math, random, time
 
 # Target Degree based on IMU
 TARGET_DEGREE = 0
+MG92B_MIN_PULSE = 500
+MG92B_MAX_PULSE = 2500
 
 def init_MG92B():
     import board
     import pwmio
     from adafruit_motor import servo
 
+    # Configure Motor Pin
     pwm = pwmio.PWMOut(board.D12, frequency=50)
 
     mg92b_servo = servo.Servo(
         pwm,
-        min_pulse=500,    # microseconds
-        max_pulse=2500,   # microseconds
+        min_pulse=MG92B_MIN_PULSE,    # microseconds
+        max_pulse=MG92B_MAX_PULSE,   # microseconds
         actuation_range=180
     )
     
