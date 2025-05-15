@@ -39,8 +39,12 @@ def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
 
     # On receiving yaw data
     elif recv_msg.MsgID == appargs.ImuAppArg.MID_SendYawData:
-        recv_yaw = float(recv_msg.data)
-        payload_motor.rotate_MG92B_ByYaw(motor_instance, recv_yaw)
+        # Control motor only if config is payload
+        if config.FSW_CONF == config.CONF_PAYLOAD:
+            recv_yaw = float(recv_msg.data)
+            payload_motor.rotate_MG92B_ByYaw(motor_instance, recv_yaw)
+        else:
+            return
 
     # On rocket motor activation command
     elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_RocketMotorActivate:
@@ -51,7 +55,7 @@ def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
             events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"Not Performing Rocket Motor Activation, current conf : {config.FSW_CONF}")
 
     # On rocket motor standby command
-    elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_PayloadReleaseMotorStandby:
+    elif recv_msg.MsgID == appargs.FlightlogicAppArg.MID_RocketMotorStandby:
         # This command should only be activated on rocket
         if config.FSW_CONF == config.CONF_ROCKET:
             standbyrocketmotor(motor_instance)
@@ -116,6 +120,14 @@ def gimbalmotorapp_init():
 
         motor_instance, pwm_instance = payload_motor.init_MG92B()
 
+        if config.FSW_CONF == config.CONF_ROCKET:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Rocket motor standby")
+            standbyrocketmotor(motor_instance)
+        
+        if config.FSW_CONF == config.CONF_CONTAINER:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Container motor standby")
+            standbypayloadreleasemotor(motor_instance)
+        
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Gimbalmotorapp Initialization Complete")
         return motor_instance, pwm_instance
     
@@ -123,7 +135,6 @@ def gimbalmotorapp_init():
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, "Error during initialization")
         GIMBALMOTORAPP_RUNSTATUS = False
     
-
 # Termination
 def gimbalmotorapp_terminate():
     global GIMBALMOTORAPP_RUNSTATUS
@@ -149,20 +160,26 @@ def gimbalmotorapp_terminate():
 # Activate Rocket Release Motor
 def activaterocketmotor(motor_instance):
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Activating Rocket Motor")
+    rocket_motor.rocket_deploy_state(motor_instance)
+
     return
 def standbyrocketmotor(motor_instance):
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Standby Rocket Motor")
+    rocket_motor.rocket_initial_state(motor_instance)
     return
 
 def activatepayloadreleasemotor(motor_instance):
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Activating Payload Release Motor")
+    container_motor.container_release(motor_instance)
     return
+
 def standbypayloadreleasemotor(motor_instance):
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Standby Payload Release Motor")
+    container_motor.container_initial(motor_instance)
     return
 
-
 def controlgimbalmotor(motor_instance, yaw):
+    payload_motor.rotate_MG92B_ByYaw(motor_instance, yaw)
     return
 
 # Put user-defined methods here!

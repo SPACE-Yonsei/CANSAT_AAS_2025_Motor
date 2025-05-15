@@ -10,7 +10,11 @@ import math, random, time
 
 # Define the pulse width of motor in microseconds
 MG996R_MIN_PULSE = 500
-MG996R_MAX_PULSE = 500
+MG996R_MAX_PULSE = 2500
+
+# Rocket motor degrees
+ROCKET_MOTOR_INITIAL_DEGREE = 0
+ROCKET_MOTOR_DEPLOY_DEGREE = 90
 
 def init_MG996R():
     import board
@@ -28,17 +32,21 @@ def init_MG996R():
         actuation_range=180
     )
     
+    # Turn the motor to initial degree
+    mg996r_servo.angle = ROCKET_MOTOR_INITIAL_DEGREE
+
     return mg996r_servo, pwm
 
-def rotate_mg996r(mg996r_servo, target_degree):
-    mg996r_servo.angle = target_degree
+def rocket_initial_state(mg996r_servo):
+    mg996r_servo.angle = ROCKET_MOTOR_INITIAL_DEGREE
+    return
+
+def rocket_deploy_state(mg996r_servo):
+    mg996r_servo.angle = ROCKET_MOTOR_DEPLOY_DEGREE
     return
 
 def terminate_MG996R(pwm):
     pwm.deinit()
-
-def normalize_diff(angle):
-    return (angle + 180) % 360 - 180
 
 if __name__ == "__main__":
 
@@ -47,10 +55,12 @@ if __name__ == "__main__":
     try:
         while True:
 
-            target_degree = float(input("Input Target Degree (0 ~ 180) : "))
-            if target_degree > 180 or target_degree < 0:
-                print("invalid range!")
-                continue
+            print("INITIAL STATE")
+            rocket_initial_state(motor_instance)
+            input("Enter to switch to DEPLOY state")
+            print("DEPLOY STATE")
+            rocket_deploy_state(motor_instance)
+            input("Enter to switch to INITIAL state")
 
     except KeyboardInterrupt:
         pass

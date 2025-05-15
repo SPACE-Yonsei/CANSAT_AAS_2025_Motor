@@ -12,6 +12,19 @@ import math, random, time
 MG996R_MIN_PULSE = 500
 MG996R_MAX_PULSE = 2500
 
+CONTAINER_METHOD = 0
+
+# 0 -> A, 1 -> B
+SELECTED_CONFIG = 0
+
+# Method A, Use hole
+A_CONTAINER_INITIAL_DEGREE = 50
+A_CONTAINER_RELEASE_DEGREE = 90
+
+# Method B, Use motor to pull string
+B_CONTAINER_INITIAL_DEGREE = 90
+B_CONTAINER_RELEASE_DEGREE = 0
+
 def init_MG996R():
     import board
     import pwmio
@@ -30,8 +43,24 @@ def init_MG996R():
     
     return mg996r_servo, pwm
 
-def rotate_mg996r(mg996r_servo, target_degree):
-    mg996r_servo.angle = target_degree
+def container_initial(mg996r_servo):
+    # Config A -> Use hole
+    if SELECTED_CONFIG == 0:
+        mg996r_servo.angle = A_CONTAINER_INITIAL_DEGREE
+
+    # Config B -> Use motor
+    if SELECTED_CONFIG == 1:
+        mg996r_servo.angle = B_CONTAINER_INITIAL_DEGREE
+
+def container_release(mg996r_servo):
+    # Config A -> Use hole
+    if SELECTED_CONFIG == 0:
+        mg996r_servo.angle = A_CONTAINER_RELEASE_DEGREE
+
+    # Config B -> Use motor
+    if SELECTED_CONFIG == 1:
+        mg996r_servo.angle = B_CONTAINER_RELEASE_DEGREE
+    
     return
 
 def terminate_MG996R(pwm):
@@ -47,13 +76,13 @@ if __name__ == "__main__":
     try:
         while True:
 
-            target_degree = float(input("Input Target Degree (0 ~ 180) : "))
-            if target_degree > 180 or target_degree < 0:
-                print("invalid range!")
-                continue
-            else:
-                rotate_mg996r(motor_instance, target_degree)
-            
+            print("INITIAL STATE")
+            container_initial(motor_instance)
+            input("Enter to switch to DEPLOY state")
+            print("DEPLOY STATE")
+            container_release(motor_instance)
+            input("Enter to switch to INITIAL state")
+
     except KeyboardInterrupt:
         pass
 
