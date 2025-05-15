@@ -55,7 +55,7 @@ def rotate_MG92B_ByYaw(mg92b_servo, yaw:float):
     servo_angle = servo_angle + 90
 
     mg92b_servo.angle = servo_angle
-    print(f"yaw={yaw:6.1f}°, servo→{servo_angle:5.1f}°")
+    #print(f"yaw={yaw:6.1f}°, servo→{servo_angle:5.1f}°")
 
 
 def get_yaw():
