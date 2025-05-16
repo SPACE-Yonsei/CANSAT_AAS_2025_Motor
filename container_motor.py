@@ -60,7 +60,7 @@ def container_release(mg996r_servo):
             time.sleep(0.5)
             mg996r_servo.angle = A_CONTAINER_INITIAL_DEGREE
             time.sleep(0.5)
-
+        mg996r_servo.angle = 90
     # Config B -> Use motor
     if SELECTED_CONFIG == 1:
         mg996r_servo.angle = B_CONTAINER_RELEASE_DEGREE
