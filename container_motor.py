@@ -18,8 +18,8 @@ CONTAINER_METHOD = 0
 SELECTED_CONFIG = 0
 
 # Method A, Use hole
-A_CONTAINER_INITIAL_DEGREE = 50
-A_CONTAINER_RELEASE_DEGREE = 90
+A_CONTAINER_INITIAL_DEGREE = 30
+A_CONTAINER_RELEASE_DEGREE = 120
 
 # Method B, Use motor to pull string
 B_CONTAINER_INITIAL_DEGREE = 90
@@ -55,7 +55,10 @@ def container_initial(mg996r_servo):
 def container_release(mg996r_servo):
     # Config A -> Use hole
     if SELECTED_CONFIG == 0:
-        mg996r_servo.angle = A_CONTAINER_RELEASE_DEGREE
+        for i in range(0, 10):
+            mg996r_servo.angle = A_CONTAINER_RELEASE_DEGREE
+            time.sleep(0.5)
+            mg996r_servo.angle = A_CONTAINER_INITIAL_DEGREE
 
     # Config B -> Use motor
     if SELECTED_CONFIG == 1:
