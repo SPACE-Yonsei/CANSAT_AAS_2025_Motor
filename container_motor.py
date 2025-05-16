@@ -59,6 +59,7 @@ def container_release(mg996r_servo):
             mg996r_servo.angle = A_CONTAINER_RELEASE_DEGREE
             time.sleep(0.5)
             mg996r_servo.angle = A_CONTAINER_INITIAL_DEGREE
+            time.sleep(0.5)
 
     # Config B -> Use motor
     if SELECTED_CONFIG == 1:
@@ -81,6 +82,9 @@ if __name__ == "__main__":
 
             print("INITIAL STATE")
             container_initial(motor_instance)
+            input("Enter to switch to RELEASE state")
+            print("release state")
+            motor_instance.angle = 90
             input("Enter to switch to DEPLOY state")
             print("DEPLOY STATE")
             container_release(motor_instance)
