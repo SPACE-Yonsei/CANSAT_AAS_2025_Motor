@@ -7,7 +7,7 @@
 #import math, random, time
 
 import math, random, time
-
+#
 # Define the pulse width of motor in microseconds
 MG996R_MIN_PULSE = 500
 MG996R_MAX_PULSE = 2500
