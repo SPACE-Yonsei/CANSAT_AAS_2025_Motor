@@ -96,7 +96,7 @@ def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, f"MID {recv_msg.MsgID} not handled")
     return
 
-def send_hk(Main_Queue : Queue, motor_instance, pwm_instance):
+def send_hk(Main_Queue : Queue):
     global GIMBALMOTORAPP_RUNSTATUS
     while GIMBALMOTORAPP_RUNSTATUS:
         gimbalmotorHK = msgstructure.MsgStructure
@@ -199,7 +199,7 @@ def gimbalmotorapp_main(Main_Queue : Queue, Main_Pipe : connection.Connection):
     motor_instance, pwm_instance = gimbalmotorapp_init()
 
     # Spawn SB Message Listner Thread
-    thread_dict["HKSender_Thread"] = threading.Thread(target=send_hk, args=(Main_Queue, motor_instance, pwm_instance), name="HKSender_Thread")
+    thread_dict["HKSender_Thread"] = threading.Thread(target=send_hk, args=(Main_Queue, ), name="HKSender_Thread")
 
     # Spawn Each Threads
     for thread_name in thread_dict:
