@@ -6,60 +6,58 @@
 #from gpiozero import AngularServo
 #import math, random, time
 
-import math, random, time
+import time
 
 # Target Degree based on IMU
 TARGET_DEGREE = 0
-MG92B_MIN_PULSE = 500
-MG92B_MAX_PULSE = 2500
+
+PAYLOAD_MOTOR_PIN = 12
+
+# Calibrate the pulse range
+PAYLOAD_MOTOR_MIN_PULSE = 500
+PAYLOAD_MOTOR_MAX_PULSE = 2500
 
 def init_MG92B():
-    import board
-    import pwmio
-    from adafruit_motor import servo
+    import pigpio
+    pi = pigpio.pi()
+    pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, 0)
 
-    # Configure Motor Pin
-    pwm = pwmio.PWMOut(board.D12, frequency=50)
+    return pi
 
-    mg92b_servo = servo.Servo(
-        pwm,
-        min_pulse=MG92B_MIN_PULSE,    # microseconds
-        max_pulse=MG92B_MAX_PULSE,   # microseconds
-        actuation_range=180
-    )
+def terminate_MG92B(pi):
+    pi.stop()
+
+def angle_to_pulse(angle) -> int:
+    if angle < 0:
+        angle = 0
+    elif angle > 180:
+        angle = 180
     
-    return mg92b_servo, pwm
+    return int(PAYLOAD_MOTOR_MIN_PULSE + ((angle/180)*(PAYLOAD_MOTOR_MAX_PULSE)))
 
-def terminate_MG92B(pwm):
-    pwm.deinit()
+prev_yaw = 0
 
-def normalize_diff(angle):
-    return (angle + 180) % 360 - 180
+# Minimum degree motor activation when degree change
+ROTATION_THRESHOLD_DEG = 3
 
-def rotate_MG92B_ByYaw(mg92b_servo, yaw:float):
+def rotate_MG92B_ByYaw(pi, yaw:float):
+    global prev_yaw
 
-    yaw = (yaw-TARGET_DEGREE) % 360
-        
-    if 90>yaw+TARGET_DEGREE >= 0+TARGET_DEGREE:   #1사분면    0~90 
-        servo_angle = yaw
-    elif 180+TARGET_DEGREE > yaw >= 90+TARGET_DEGREE:  #2사분면  
-        servo_angle = 85
-    elif 270+TARGET_DEGREE > yaw >= 180+TARGET_DEGREE:  #3사분면  
-        servo_angle = -85
-    elif 360+TARGET_DEGREE >= yaw >= 270+TARGET_DEGREE:   #4사분면
-        servo_angle = -(360-yaw)    
-    else:
-        pass
+    yaw = (yaw+TARGET_DEGREE) % 360
 
-    # The Servo angle range is -90 ~ 90, but adafruit servo library support 0 ~ 180, so apply the offset
-    servo_angle = servo_angle + 90
-
-    mg92b_servo.angle = servo_angle
-    #print(f"yaw={yaw:6.1f}°, servo→{servo_angle:5.1f}°")
-
-
-def get_yaw():
-    return random.uniform(0, 360)
+    if abs(prev_yaw - yaw) > ROTATION_THRESHOLD_DEG:
+        if 90 > yaw >= 0:   #1사분면    0~90 
+            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(yaw))
+        elif 180 > yaw >= 90:  #2사분면  
+            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(180))
+        elif 270 > yaw >= 180:  #3사분면  
+            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(0))
+        elif 360 >= yaw >= 270:   #4사분면
+            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(yaw - 270)) 
+        else:
+            pass
+        prev_yaw = yaw
+    return
 
 if __name__ == "__main__":
     from adafruit_bno055 import BNO055_I2C
@@ -68,12 +66,12 @@ if __name__ == "__main__":
     i2c    = busio.I2C(board.SCL, board.SDA)
     sensor = BNO055_I2C(i2c)
 
-    motor_instance, pwm_instance = init_MG92B()
+    pi = init_MG92B()
 
     try:
         print("BNO055 + MG92B 보정 시작 (Ctrl+C 종료)")
         # 센서 워밍업
-        time.sleep(1)
+        time.sleep(0.5)
         while True:
             heading = sensor.euler[0]  # (heading, roll, pitch)
             if heading is None:
@@ -81,11 +79,11 @@ if __name__ == "__main__":
                 time.sleep(0.1)
                 continue
 
-            rotate_MG92B_ByYaw(motor_instance, heading)
+            rotate_MG92B_ByYaw(pi, heading)
             time.sleep(0.1)
 
     except KeyboardInterrupt:
         pass
 
     finally:
-        terminate_MG92B(pwm_instance)
+        terminate_MG92B(pi)

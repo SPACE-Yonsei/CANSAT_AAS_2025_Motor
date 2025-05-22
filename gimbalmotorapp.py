@@ -117,31 +117,49 @@ def gimbalmotorapp_init():
 
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Initializating gimbalmotorapp")
         ## User Defined Initialization goes HERE
+        motor_instance = None
 
-        motor_instance, pwm_instance = payload_motor.init_MG92B()
+        if config.FSW_CONF == config.CONF_PAYLOAD:
+            motor_instance = payload_motor.init_MG92B()
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Payload motor standby")
 
-        if config.FSW_CONF == config.CONF_ROCKET:
+        elif config.FSW_CONF == config.CONF_ROCKET:
+            motor_instance = rocket_motor.init_MG996R()
             events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Rocket motor standby")
             standbyrocketmotor(motor_instance)
         
-        if config.FSW_CONF == config.CONF_CONTAINER:
+        elif config.FSW_CONF == config.CONF_CONTAINER:
+            motor_instance = container_motor.init_MG996R()
             events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Container motor standby")
             standbypayloadreleasemotor(motor_instance)
-        
+
+        else:
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "No Valid configuration!")
+            GIMBALMOTORAPP_RUNSTATUS = False
+            return None
+
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Gimbalmotorapp Initialization Complete")
-        return motor_instance, pwm_instance
+        return motor_instance
     
     except Exception as e:
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, "Error during initialization")
         GIMBALMOTORAPP_RUNSTATUS = False
     
 # Termination
-def gimbalmotorapp_terminate():
+def gimbalmotorapp_terminate(motor_instance):
     global GIMBALMOTORAPP_RUNSTATUS
 
     GIMBALMOTORAPP_RUNSTATUS = False
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Terminating gimbalmotorapp")
     # Termination Process Comes Here
+
+    # Terminate each motor
+    if config.FSW_CONF == config.CONF_PAYLOAD:
+        payload_motor.terminate_MG92B(motor_instance)
+    elif config.FSW_CONF == config.CONF_ROCKET:
+        rocket_motor.terminate_MG996R(motor_instance)
+    elif config.FSW_CONF == config.CONF_CONTAINER:
+        container_motor.terminate_MG996R(motor_instance)
 
     # Join Each Thread to make sure all threads terminates
     for thread_name in thread_dict:
@@ -196,7 +214,7 @@ def gimbalmotorapp_main(Main_Queue : Queue, Main_Pipe : connection.Connection):
     GIMBALMOTORAPP_RUNSTATUS = True
 
     # Initialization Process
-    motor_instance, pwm_instance = gimbalmotorapp_init()
+    motor_instance = gimbalmotorapp_init()
 
     # Spawn SB Message Listner Thread
     thread_dict["HKSender_Thread"] = threading.Thread(target=send_hk, args=(Main_Queue, ), name="HKSender_Thread")
@@ -229,6 +247,6 @@ def gimbalmotorapp_main(Main_Queue : Queue, Main_Pipe : connection.Connection):
         GIMBALMOTORAPP_RUNSTATUS = False
 
     # Termination Process after runloop
-    gimbalmotorapp_terminate()
+    gimbalmotorapp_terminate(motor_instance)
 
     return

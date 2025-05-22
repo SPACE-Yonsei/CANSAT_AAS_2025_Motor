@@ -24,21 +24,20 @@ CONTAINER_RELEASE_PULSE = (CONTAINER_RELEASE_DEGREE/180)*2000 + 500
 def init_MG996R():
     import pigpio
     pi = pigpio.pi()
-    pin = CONTAINER_MOTOR_PIN
-    pi.set_servo_pulsewidth(pin, CONTAINER_INITIAL_PULSE)
+    pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_INITIAL_PULSE)
 
-    return pi, pin
+    return pi
 
-def container_initial(pi, pin):
+def container_initial(pi):
 
-    pi.set_servo_pulsewidth(pin, CONTAINER_INITIAL_PULSE)
+    pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_INITIAL_PULSE)
 
-def container_release(pi, pin):
+def container_release(pi):
 
     for i in range(0, 10):
-        pi.set_servo_pulsewidth(pin, CONTAINER_RELEASE_PULSE)
+        pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_RELEASE_PULSE)
         time.sleep(0.5)
-        pi.set_servo_pulsewidth(pin, CONTAINER_INITIAL_PULSE)
+        pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_INITIAL_PULSE)
         time.sleep(0.5)
     
     return
@@ -48,21 +47,21 @@ def terminate_MG996R(pi):
 
 if __name__ == "__main__":
 
-    pi, pin= init_MG996R()
+    pi = init_MG996R()
     
     try:
         while True:
 
             print("INITIAL STATE")
-            container_initial(pi, pin)
+            container_initial(pi)
             input("Enter to switch to RELEASE state")
 
             print("release state")
-            pi.set_servo_pulsewidth(pin, CONTAINER_RELEASE_PULSE)
+            pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_RELEASE_PULSE)
             input("Enter to switch to DEPLOY state")
 
             print("DEPLOY STATE")
-            container_release(pi, pin)
+            container_release(pi)
             input("Enter to switch to INITIAL state")
 
     except KeyboardInterrupt:
