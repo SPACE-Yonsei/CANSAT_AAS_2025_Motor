@@ -33,7 +33,7 @@ def angle_to_pulse(angle) -> int:
     elif angle > 180:
         angle = 180
     
-    return int(PAYLOAD_MOTOR_MIN_PULSE + ((angle/180)*(PAYLOAD_MOTOR_MAX_PULSE)))
+    return int(PAYLOAD_MOTOR_MIN_PULSE + ((angle/180)*(PAYLOAD_MOTOR_MAX_PULSE - PAYLOAD_MOTOR_MIN_PULSE)))
 
 prev_yaw = 0
 
@@ -77,6 +77,7 @@ if __name__ == "__main__":
             if heading is None:
                 # 아직 센서가 준비 안 됐으면 재시도
                 time.sleep(0.1)
+                print("sensor not ready")
                 continue
 
             rotate_MG92B_ByYaw(pi, heading)
