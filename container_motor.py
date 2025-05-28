@@ -15,29 +15,34 @@ CONTAINER_MOTOR_PIN = 12
 CONTAINER_INITIAL_DEGREE = 30
 CONTAINER_RELEASE_DEGREE = 120
 
-CONTAINER_INITIAL_PULSE = (CONTAINER_INITIAL_DEGREE/180)*2000 + 500
-CONTAINER_RELEASE_PULSE = (CONTAINER_RELEASE_DEGREE/180)*2000 + 500
+CONTAINER_MOTOR_MIN_PULSE = 500
+CONTAINER_MOTOR_MAX_PULSE = 2500
 
-# pi.set_servo_pulsewidth(18, 1500)
-#angle = (angle/180)*2000 + 500
+def angle_to_pulse(angle) -> int:
+    if angle < 0:
+        angle = 0
+    elif angle > 180:
+        angle = 180
+    
+    return int(CONTAINER_MOTOR_MIN_PULSE + ((angle/180)*(CONTAINER_MOTOR_MAX_PULSE - CONTAINER_MOTOR_MIN_PULSE)))
 
 def init_MG996R():
     import pigpio
     pi = pigpio.pi()
-    pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_INITIAL_PULSE)
+    pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, angle_to_pulse(CONTAINER_INITIAL_DEGREE))
 
     return pi
 
 def container_initial(pi):
 
-    pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_INITIAL_PULSE)
+    pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, angle_to_pulse(CONTAINER_INITIAL_DEGREE))
 
 def container_release(pi):
 
     for i in range(0, 10):
-        pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_RELEASE_PULSE)
+        pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, angle_to_pulse(CONTAINER_RELEASE_DEGREE))
         time.sleep(0.5)
-        pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_INITIAL_PULSE)
+        pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, angle_to_pulse(CONTAINER_INITIAL_DEGREE))
         time.sleep(0.5)
     
     return
@@ -56,8 +61,8 @@ if __name__ == "__main__":
             container_initial(pi)
             input("Enter to switch to RELEASE state")
 
-            print("release state")
-            pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, CONTAINER_RELEASE_PULSE)
+            print("RELEASE STATE")
+            pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, angle_to_pulse(CONTAINER_RELEASE_DEGREE))
             input("Enter to switch to DEPLOY state")
 
             print("DEPLOY STATE")
