@@ -21,6 +21,9 @@ from motor import rocket_motor
 # Runstatus of application. Application is terminated when false
 GIMBALMOTORAPP_RUNSTATUS = True
 
+# Flag that determines the activation of payload motor
+PAYLOAD_MOTOR_ENABLE = True
+
 ######################################################
 ## FUNDEMENTAL METHODS                              ##
 ######################################################
@@ -31,6 +34,7 @@ GIMBALMOTORAPP_RUNSTATUS = True
 # Handles received message
 def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
     global GIMBALMOTORAPP_RUNSTATUS
+    global PAYLOAD_MOTOR_ENABLE
 
     if recv_msg.MsgID == appargs.MainAppArg.MID_TerminateProcess:
         # Change Runstatus to false to start termination process
@@ -39,8 +43,8 @@ def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
 
     # On receiving yaw data
     elif recv_msg.MsgID == appargs.ImuAppArg.MID_SendYawData:
-        # Control motor only if config is payload
-        if config.FSW_CONF == config.CONF_PAYLOAD:
+        # Control motor only if config is payload and is activated
+        if config.FSW_CONF == config.CONF_PAYLOAD and PAYLOAD_MOTOR_ENABLE == True:
             recv_yaw = float(recv_msg.data)
             payload_motor.rotate_MG92B_ByYaw(motor_instance, recv_yaw)
         else:
@@ -85,12 +89,22 @@ def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
             activaterocketmotor(motor_instance)
 
         elif config.FSW_CONF == config.CONF_CONTAINER:
-            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"MEC : Current conf : container, activating payload release motor...")
-            activatepayloadreleasemotor(motor_instance)
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"MEC : Current conf : container, Current Option : {recv_msg.data}...")
+            if recv_msg.data == "ON":
+                activatepayloadreleasemotor(motor_instance)
+            elif recv_msg.data == "OFF":
+                standbypayloadreleasemotor(motor_instance)
+            else:
+                events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, f"Error Activating container motor, invalid option : {recv_msg.data}")
 
         elif config.FSW_CONF == config.CONF_PAYLOAD:
-            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"MEC : Current conf : payload, resetting the gimbal motor to 0 degree...")
-            controlgimbalmotor(motor_instance, 90)
+            events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, f"MEC : Current conf : payload, Current Option : {recv_msg.data}")
+            if recv_msg.data == "ON":
+                PAYLOAD_MOTOR_ENABLE = True
+            elif recv_msg.data == "OFF":
+                PAYLOAD_MOTOR_ENABLE = False
+            else:
+                events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, f"Error Activating payload motor, invalid option : {recv_msg.data}")
             
     else:
         events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, f"MID {recv_msg.MsgID} not handled")
@@ -99,7 +113,7 @@ def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
 def send_hk(Main_Queue : Queue):
     global GIMBALMOTORAPP_RUNSTATUS
     while GIMBALMOTORAPP_RUNSTATUS:
-        gimbalmotorHK = msgstructure.MsgStructure
+        gimbalmotorHK = msgstructure.MsgStructure()
         msgstructure.send_msg(Main_Queue, gimbalmotorHK, appargs.GimbalmotorAppArg.AppID, appargs.HkAppArg.AppID, appargs.GimbalmotorAppArg.MID_SendHK, str(GIMBALMOTORAPP_RUNSTATUS))
         time.sleep(1)
     return
