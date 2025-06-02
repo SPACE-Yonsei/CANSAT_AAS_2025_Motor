@@ -47,11 +47,11 @@ def rotate_MG92B_ByYaw(pi, yaw:float):
 
     if abs(prev_yaw - yaw) > ROTATION_THRESHOLD_DEG:
         if 90 > yaw >= 0:   #1사분면    0~90 
-            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(yaw))
+            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(yaw+90))
         elif 180 > yaw >= 90:  #2사분면  
-            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(180))
+            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(177))
         elif 270 > yaw >= 180:  #3사분면  
-            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(0))
+            pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(3))
         elif 360 >= yaw >= 270:   #4사분면
             pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(yaw - 270)) 
         else:
