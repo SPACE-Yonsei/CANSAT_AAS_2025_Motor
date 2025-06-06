@@ -44,7 +44,7 @@ def rotate_MG92B_ByYaw(pi, yaw:float):
     global prev_yaw
 
     yaw = (yaw+TARGET_DEGREE) % 360
-    print(yaw)
+    
     if abs(prev_yaw - yaw) > ROTATION_THRESHOLD_DEG:
         if 90 > yaw >= 0:   #1사분면    0~90 
             pi.set_servo_pulsewidth(PAYLOAD_MOTOR_PIN, angle_to_pulse(90-yaw))
