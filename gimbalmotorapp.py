@@ -93,7 +93,7 @@ def command_handler (recv_msg : msgstructure.MsgStructure, motor_instance):
             if recv_msg.data == "ON":
                 activatepayloadreleasemotor(motor_instance)
             elif recv_msg.data == "OFF":
-                standbypayloadreleasemotor(motor_instance)
+                freepayloadreleasemotor(motor_instance)
             else:
                 events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.error, f"Error Activating container motor, invalid option : {recv_msg.data}")
 
@@ -208,6 +208,11 @@ def activatepayloadreleasemotor(motor_instance):
 def standbypayloadreleasemotor(motor_instance):
     events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Standby Payload Release Motor")
     container_motor.container_initial(motor_instance)
+    return
+
+def freepayloadreleasemotor(motor_instance):
+    events.LogEvent(appargs.GimbalmotorAppArg.AppName, events.EventType.info, "Free Payload Release Motor")
+    container_motor.container_free(motor_instance)
     return
 
 def controlgimbalmotor(motor_instance, yaw):

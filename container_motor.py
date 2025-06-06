@@ -14,6 +14,7 @@ CONTAINER_MOTOR_PIN = 12
 # Set the container pulse and degree
 CONTAINER_INITIAL_DEGREE = 30
 CONTAINER_RELEASE_DEGREE = 120
+CONTAINER_FREE_DEGREE = 90
 
 CONTAINER_MOTOR_MIN_PULSE = 500
 CONTAINER_MOTOR_MAX_PULSE = 2500
@@ -36,6 +37,10 @@ def init_MG996R():
 def container_initial(pi):
 
     pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, angle_to_pulse(CONTAINER_INITIAL_DEGREE))
+
+def container_free(pi):
+
+    pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, angle_to_pulse(CONTAINER_FREE_DEGREE))
 
 def container_release(pi):
 
@@ -61,8 +66,8 @@ if __name__ == "__main__":
             container_initial(pi)
             input("Enter to switch to RELEASE state")
 
-            print("RELEASE STATE")
-            pi.set_servo_pulsewidth(CONTAINER_MOTOR_PIN, angle_to_pulse(CONTAINER_RELEASE_DEGREE))
+            print("FREE STATE")
+            container_free(pi)
             input("Enter to switch to DEPLOY state")
 
             print("DEPLOY STATE")
